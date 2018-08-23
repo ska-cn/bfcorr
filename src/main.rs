@@ -4,11 +4,11 @@ use std::net::UdpSocket;
 fn main() {
     let socket = UdpSocket::bind("0.0.0.0:60000").unwrap();
     socket.set_nonblocking(false).unwrap();
-
-    let mut buf = vec![0_u8;65536*1024];
+    let niter=2048;
+    let mut buf = vec![0_u8;16384*niter];
     let mut shift=0_usize;
     let mut package_size=0;
-    let niter=2048;
+
     for _i in 0..niter{
         let (num_bytes, _src_addr) = socket.recv_from(&mut buf[shift..]).unwrap();
 
