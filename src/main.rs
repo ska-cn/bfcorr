@@ -8,7 +8,8 @@ fn main() {
     let mut buf = vec![0_u8;65536*1024];
     let mut shift=0_usize;
     let mut package_size=0;
-    for _i in 0..1024{
+    let niter=2048;
+    for _i in 0..niter{
         let (num_bytes, _src_addr) = socket.recv_from(&mut buf[shift..]).unwrap();
 
         let header: &[u64] = unsafe { std::mem::transmute(&buf[shift..(shift+8)])} ;
@@ -20,7 +21,7 @@ fn main() {
     }
     let mut id0=0;
     let mut id1=0;
-    for i in 0..1024{
+    for i in 0..niter{
         let shift=i*package_size;
         let header:&[u64]=unsafe{std::mem::transmute(&buf[shift..(shift+8)])};
         let id=header[0] & 0b000000000000000000000111111111111111111111111111111111111111111_u64;
