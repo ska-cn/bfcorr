@@ -29,7 +29,7 @@ fn main() {
         if i==0{
             id0=id;
         }
-        if i==1023{
+        if i==niter-1{
             id1=id;
         }
     }
