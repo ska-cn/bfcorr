@@ -4,7 +4,7 @@ use std::net::UdpSocket;
 fn main() {
     let socket = UdpSocket::bind("0.0.0.0:60000").unwrap();
     socket.set_nonblocking(false).unwrap();
-    let niter=2048;
+    let niter=4096;
     let mut buf = vec![0_u8;16384*niter];
     let mut shift=0_usize;
     let mut package_size=0;
