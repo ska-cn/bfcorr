@@ -1,0 +1,6 @@
+[package]
+name = "bfcorr"
+version = "0.1.0"
+authors = ["Gu Junhua <jhgu@nao.cas.cn>"]
+
+[dependencies]
