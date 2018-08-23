@@ -11,8 +11,8 @@ fn main() {
     for _i in 0..128{
         let (num_bytes, _src_addr) = socket.recv_from(&mut buf[shift..]).unwrap();
 
-        //let header: &[u64] = unsafe { std::mem::transmute(&buf[shift..(shift+8)])} ;
-        //let id=header[0] & 0b000000000000000000000111111111111111111111111111111111111111111_u64;
+        let header: &[u64] = unsafe { std::mem::transmute(&buf[shift..(shift+8)])} ;
+        let id=header[0] & 0b000000000000000000000111111111111111111111111111111111111111111_u64;
         //let id=header[0];
         shift+=num_bytes;
         //println!("{}", id);
