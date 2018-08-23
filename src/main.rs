@@ -18,11 +18,20 @@ fn main() {
         //println!("{}", id);
         package_size=num_bytes;
     }
+    let mut id0=0;
+    let mut id1=0;
     for i in 0..1024{
         let shift=i*package_size;
         let header:&[u64]=unsafe{std::mem::transmute(&buf[shift..(shift+8)])};
         let id=header[0] & 0b000000000000000000000111111111111111111111111111111111111111111_u64;
         println!("{}", id);
+        if i==0{
+            id0=id;
+        }
+        if i==1023{
+            id1=id;
+        }
     }
+    println!("{}", id1-id0);
 }
 
