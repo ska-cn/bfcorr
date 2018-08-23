@@ -10,7 +10,7 @@ fn main() {
     for i in 0..128{
         let (num_bytes, _src_addr) = socket.recv_from(&mut buf[shift..]).unwrap();
 
-        let header: &[u64] = unsafe { std::mem::transmute(&buf[num_bytes..(num_bytes+8)]) };
+        let header: &[u64] = unsafe { std::mem::transmute(&buf[shift..(shift+8)]) };
 
         shift+=num_bytes;
         println!("{}", header[0]);
