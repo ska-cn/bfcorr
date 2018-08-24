@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Gu Junhua <jhgu@nao.cas.cn>"]
 
 [dependencies]
+udt = "0.2.0"
+pcap = "0.7.0"
+crossbeam-channel = "0.2.4"
