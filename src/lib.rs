@@ -1,9 +1,11 @@
 extern crate pcap;
-
+extern crate num_complex;
+extern crate num_traits;
 extern crate crossbeam_channel;
 use crossbeam_channel as channel;
 use pcap::Capture;
-
+use num_complex::Complex;
+use num_traits::identities::Zero;
 pub const ID_MASK: u64 = ((1_u64 << 42) - 1);
 pub const BYTES_PER_NUMBER: usize = 2;
 
@@ -13,7 +15,7 @@ pub fn run_daq(
     nchannels: usize,
     nchunks: usize,
     queue_depth: usize,
-) -> channel::Receiver<(usize, Vec<i16>)> {
+) -> channel::Receiver<(usize, Vec<Complex<i16>>)> {
     let dev = pcap::Device {
         name: dev_name.to_string(),
         desc: None,
@@ -27,9 +29,9 @@ pub fn run_daq(
         .unwrap();
     cap.filter(&format!("dst port {}", port)).unwrap();
     //cap.next().unwrap();
-    let buf_size = nchannels * nchunks * 2;
+    let buf_size = nchannels * nchunks;
 
-    let (send, recv): (channel::Sender<(usize, Vec<i16>)>, channel::Receiver<(usize, Vec<i16>)>) =
+    let (send, recv): (channel::Sender<(usize, Vec<Complex<i16>>)>, channel::Receiver<(usize, Vec<Complex<i16>>)>) =
         channel::bounded(queue_depth);
 
     let recv1=recv.clone();
@@ -43,7 +45,7 @@ pub fn run_daq(
             id
         };
         let mut cnt=0;
-        let mut buf = vec![0_i16; buf_size];
+        let mut buf:Vec<Complex<i16>> = vec![Complex::new(0,0); buf_size];
         while let Ok(packet) = cap.next() {
             //println!("received packet! {:?}", packet);
             //println!("{}", packet.data.len());
@@ -59,7 +61,11 @@ pub fn run_daq(
             let id = header[0] & ID_MASK;
 
             if (id as usize/nchunks)>(old_id as usize/nchunks){
-                let old_buf=std::mem::replace(&mut buf, vec![0_i16; buf_size]);
+                let mut new_buf=vec![0_i16; buf_size*2];
+                //let old_buf=std::mem::replace(&mut buf, vec![Complex::new(0,0); buf_size]);
+                let ptr=new_buf.as_mut_ptr();
+                std::mem::forget(new_buf);
+                let old_buf=std::mem::replace(&mut buf, unsafe{Vec::from_raw_parts(ptr as *mut Complex<i16>, buf_size, buf_size)});
                 if recv1.is_full(){
                     recv1.recv();
                 }
@@ -68,11 +74,11 @@ pub fn run_daq(
             }
 
             let trunk_id = (id as usize) % nchunks;
-            let converted_data: &[i16] = unsafe {
-                std::slice::from_raw_parts(payload.as_ptr() as *const i16, nchannels * 2)
+            let converted_data: &[Complex<i16>] = unsafe {
+                std::slice::from_raw_parts(payload.as_ptr() as *const Complex<i16>, nchannels)
             };
             //println!("{} {} {}", payload.len(), converted_data.len(), nchannels*2);
-            buf[trunk_id as usize * nchannels * 2..((trunk_id + 1) as usize * nchannels * 2)]
+            buf[trunk_id as usize * nchannels ..((trunk_id + 1) as usize * nchannels)]
                 .copy_from_slice(converted_data);
 
             old_id=id;
