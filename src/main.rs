@@ -22,7 +22,7 @@ fn calc_spec(data:&Vec<Complex<i16> >)->Vec<f64>{
 fn calc_corr(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)->Vec<Complex<f64> >{
     let mut tnt=0;
     let zeros= {
-        let mut temp_buf=vec![1_f64; nch*2];
+        let mut temp_buf=vec![0_f64; nch*2];
         let ptr=temp_buf.as_mut_ptr();
         std::mem::forget(temp_buf);
         unsafe{Vec::from_raw_parts(ptr as *mut Complex<f64>, nch, nch)}
@@ -49,6 +49,6 @@ fn main() {
         unsafe{Vec::from_raw_parts(ptr as *mut Complex<i16>, buf_size, buf_size)}
     };
     
-    calc_corr(&buff, &buff, nch);
+    //calc_corr(&buff, &buff, nch);
 }
 

@@ -53,7 +53,7 @@ pub fn run_daq(
             //println!("{}", data.len());
             let payload = &data[8..];
             if payload.len() != nchannels * BYTES_PER_NUMBER * 2 {
-                println!("{}", payload.len());
+                println!("len={}", payload.len());
             }
             assert!(payload.len() == nchannels * BYTES_PER_NUMBER * 2);
             let header: &[u64] = unsafe { std::mem::transmute(&data[0..(0 + 8)]) };
@@ -82,11 +82,42 @@ pub fn run_daq(
                 .copy_from_slice(converted_data);
 
             old_id=id;
-            if cnt%10000==0{
+            if cnt%100000==0{
                 println!("{}", id);
             }
             cnt+=1;
         }
     });
     recv
+}
+
+
+pub fn calc_corr(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)->Vec<Complex<f64> >{
+    let mut tnt=0;
+    let zeros= {
+        let mut temp_buf=vec![0_f64; nch*2];
+        let ptr=temp_buf.as_mut_ptr();
+        std::mem::forget(temp_buf);
+        unsafe{Vec::from_raw_parts(ptr as *mut Complex<f64>, nch, nch)}
+    };
+
+    data1.chunks(nch).zip(data2.chunks(nch)).fold(zeros, |x, (a, b)|{
+      x.iter().zip(a.iter().zip(b.iter())).map(|(x, (&y,&z))|{
+          let r=(y*z.conj());
+          x+Complex::<f64>::new(r.re as f64, r.im as f64)
+          }).collect()
+    })
+}
+
+
+pub fn calc_corr1(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)->Vec<Complex<f64> >{
+    let mut tnt=0;
+    let zeros= {
+        let mut temp_buf=vec![0_f64; nch*2];
+        let ptr=temp_buf.as_mut_ptr();
+        std::mem::forget(temp_buf);
+        unsafe{Vec::from_raw_parts(ptr as *mut Complex<f64>, nch, nch)}
+    };
+
+    zeros
 }

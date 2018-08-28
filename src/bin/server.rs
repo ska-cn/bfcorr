@@ -2,28 +2,33 @@ extern crate pcap;
 extern crate crossbeam_channel;
 extern crate bfcorr;
 
+
+use std::fs::File;
+use std::io::prelude::*;
+
 use bfcorr::run_daq;
+use bfcorr::calc_corr;
+
 use pcap::Capture;
 use crossbeam_channel as channel;
 fn main(){
 
-    let nch=1536;
-    let recv=run_daq("eth3", 60000, nch, 80000, 4);
+    let nch=2048-512;
+    let recv=run_daq("eth3", 60000, nch, 80000, 16);
 
 
     while let Some((chunk_id, data))=recv.recv(){
-        println!("b");
-        //let x=data.iter().fold(0.0, |x, &y|{x+(y*y.conj()).re as f64});
-        let mut spec=vec![0.0;nch];
-        for s in data.chunks(nch){
-            for i in 0..nch{
-                spec[i]+=s[i].norm_sqr() as f64;
-            }
-        }
+        let mut file=File::create("spec.txt").unwrap();
+        let spec=calc_corr(&data, &data, nch);
 
-        println!("{} {} {} {}",chunk_id,  recv.len(),data.len(), spec.len());
+        println!("{} {} {} ",chunk_id,  recv.len(),spec.len());
         //println!("{}", data.len());
+        for i in 0..spec.len(){
+            writeln!(&mut file, "{} {}", (i+512) as f64/2048.0*250.0, spec[i].re);
+        }
+        //break;
+
     }
 
-    assert!(false);
+    //assert!(false);
 }
