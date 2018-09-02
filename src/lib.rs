@@ -23,11 +23,13 @@ pub fn run_daq(
 
     let mut cap = Capture::from_device(dev)
         .unwrap()
-        .timeout(1000000000)
+        .timeout(0)
         .buffer_size(512 * 1024 * 1024)
         .open()
         .unwrap();
-    cap.filter(&format!("dst port {}", port)).unwrap();
+    let packet_len=nchannels * BYTES_PER_NUMBER * 2+50;
+    cap.filter(&format!("less {} and greater {} and dst port {}",
+    packet_len, packet_len, port)).unwrap();
     //cap.next().unwrap();
     let buf_size = nchannels * nchunks;
 
@@ -41,6 +43,7 @@ pub fn run_daq(
             let data=&packet.data[42..];
             let payload=&data[8..];
             let header:&[u64]=unsafe { std::mem::transmute(&data[0..(0 + 8)]) };
+            assert!(payload.len() == nchannels * BYTES_PER_NUMBER * 2);
             let id=header[0] & ID_MASK;
             id
         };
@@ -49,15 +52,16 @@ pub fn run_daq(
         while let Ok(packet) = cap.next() {
             //println!("received packet! {:?}", packet);
             //println!("{}", packet.data.len());
+            //continue;
             let data: &[u8] = &packet.data[42..];
             //println!("{}", data.len());
             let payload = &data[8..];
-            if payload.len() != nchannels * BYTES_PER_NUMBER * 2 {
-                println!("len={}", payload.len());
-            }
+            //println!("{} {}", data.len(), payload.len());
+            
             assert!(payload.len() == nchannels * BYTES_PER_NUMBER * 2);
             let header: &[u64] = unsafe { std::mem::transmute(&data[0..(0 + 8)]) };
             //let id=header[0] & 0b000000000000000000000111111111111111111111111111111111111111111_u64;
+            //println!("header={}", header[0]);
             let id = header[0] & ID_MASK;
 
             if (id as usize/nchunks)>(old_id as usize/nchunks){
@@ -70,7 +74,7 @@ pub fn run_daq(
                     recv1.recv();
                 }
                 send.send((old_id as usize/nchunks, old_buf));
-                println!("a");
+                //println!("a");
             }
 
             let trunk_id = (id as usize) % nchunks;
@@ -83,7 +87,7 @@ pub fn run_daq(
 
             old_id=id;
             if cnt%100000==0{
-                println!("{}", id);
+                println!("id={}", id);
             }
             cnt+=1;
         }
