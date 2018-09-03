@@ -2,6 +2,8 @@ extern crate pcap;
 extern crate num_complex;
 extern crate num_traits;
 extern crate crossbeam_channel;
+extern crate rayon;
+
 use crossbeam_channel as channel;
 use pcap::Capture;
 use num_complex::Complex;
@@ -24,7 +26,7 @@ pub fn run_daq(
     let mut cap = Capture::from_device(dev)
         .unwrap()
         .timeout(0)
-        .buffer_size(512 * 1024 * 1024)
+        .buffer_size(1024 * 1024 * 1024)
         .open()
         .unwrap();
     let packet_len=nchannels * BYTES_PER_NUMBER * 2+50;
@@ -96,7 +98,8 @@ pub fn run_daq(
 }
 
 
-pub fn calc_corr(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)->Vec<Complex<f64> >{
+pub fn calc_corr(data1:&[Complex<i16>], data2:&[Complex<i16>], nch:usize)->Vec<Complex<f64> >{
+    assert!(data1.len()==data2.len());
     let mut tnt=0;
     let zeros= {
         let mut temp_buf=vec![0_f64; nch*2];
@@ -107,8 +110,14 @@ pub fn calc_corr(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)-
 
     data1.chunks(nch).zip(data2.chunks(nch)).fold(zeros, |x, (a, b)|{
       x.iter().zip(a.iter().zip(b.iter())).map(|(x, (&y,&z))|{
-          let r=(y*z.conj());
-          x+Complex::<f64>::new(r.re as f64, r.im as f64)
+          let y1=Complex::<f64>::new(y.re as f64, y.im as f64);
+          let z1=Complex::<f64>::new(z.re as f64, z.im as f64);
+          let r=(y1*z1.conj());
+          if r.re<0.0{
+              println!("{:?} {:?}", y1,z1);
+          }
+          assert!(r.re>=0.0);
+          x+r
           }).collect()
     })
 }
