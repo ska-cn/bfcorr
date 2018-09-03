@@ -123,6 +123,27 @@ pub fn calc_corr(data1:&[Complex<i16>], data2:&[Complex<i16>], nch:usize)->Vec<C
 }
 
 
+pub fn calc_corr_par(data1:&[Complex<i16>], data2:&[Complex<i16>], nch:usize)->Vec<Complex<f64> >{
+    assert!(data1.len()==data2.len());
+    let zeros=||{
+        let mut temp_buf=vec![0_f64; nch*2];
+        let ptr=temp_buf.as_mut_ptr();
+        std::mem::forget(temp_buf);
+        unsafe{Vec::from_raw_parts(ptr as *mut Complex<f64>, nch, nch)}
+    };
+
+    data1.par_iter().zip(data2.par_iter()).map(|(&a,&b)|{
+        let a1=Complex::<f64>::new(a.re as f64, a.im as f64);
+        let b1=Complex::<f64>::new(b.re as f64, b.im as f64);
+        a1*b1.conj()
+    })
+        .chunks(nch).reduce(zeros, |a,b|{
+        a.iter().zip(b.iter()).map(|(x,y)|{x+y}).collect()
+    })
+}
+
+
+
 pub fn calc_corr1(data1:&Vec<Complex<i16>>, data2:&Vec<Complex<i16>>, nch:usize)->Vec<Complex<f64> >{
     let mut tnt=0;
     let zeros= {
