@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::env;
 use bfcorr::run_daq;
-use bfcorr::calc_corr;
+use bfcorr::calc_corr_par;
 
 use pcap::Capture;
 use crossbeam_channel as channel;
@@ -23,17 +23,20 @@ fn main(){
 
 
     while let Some((chunk_id, data))=recv.recv(){
-        //let mut file=File::create("spec.txt").unwrap();
+        
         //println!("a");
         
-        //let spec=calc_corr(&data, &data, ch2-ch1);
+        let spec=calc_corr_par(&data, &data, ch2-ch1);
+        let spec=calc_corr_par(&data, &data, ch2-ch1);
+        let spec=calc_corr_par(&data, &data, ch2-ch1);
         //println!("b");
         //println!("{} {} {} ",chunk_id,  recv.len(),spec.len());
         
-        println!("{} {}",recv.len(), chunk_id);
-        //for i in 0..spec.len(){
-        //   writeln!(&mut file, "{} {}", (i+ch1) as f64/2048.0*250.0, spec[i].re);
-       // }
+        println!("chunk_id={} Q len={}",chunk_id, recv.len());
+        let mut file=File::create("spec.txt").unwrap();
+        for i in 0..spec.len(){
+           writeln!(&mut file, "{} {}", (i+ch1) as f64/2048.0*250.0, spec[i].re);
+        }
         //break;
 
     }

@@ -4,6 +4,8 @@ extern crate num_traits;
 extern crate crossbeam_channel;
 extern crate rayon;
 
+use rayon::prelude::*;
+
 use crossbeam_channel as channel;
 use pcap::Capture;
 use num_complex::Complex;
@@ -26,7 +28,7 @@ pub fn run_daq(
     let mut cap = Capture::from_device(dev)
         .unwrap()
         .timeout(0)
-        .buffer_size(1024 * 1024 * 1024)
+        .buffer_size(((1_u32<<31)-1) as i32)
         .open()
         .unwrap();
     let packet_len=nchannels * BYTES_PER_NUMBER * 2+50;
@@ -51,6 +53,7 @@ pub fn run_daq(
         };
         let mut cnt=0;
         let mut buf:Vec<Complex<i16>> = vec![Complex::new(0,0); buf_size];
+        let mut id_while_ago=0;
         while let Ok(packet) = cap.next() {
             //println!("received packet! {:?}", packet);
             //println!("{}", packet.data.len());
@@ -89,7 +92,9 @@ pub fn run_daq(
 
             old_id=id;
             if cnt%100000==0{
-                println!("id={}", id);
+                let lost_ratio=1.0-100000./(id as f64-id_while_ago as f64);
+                println!("id={} drop ratio: {:.3}", id, lost_ratio);
+                id_while_ago=id;
             }
             cnt+=1;
         }
@@ -100,7 +105,6 @@ pub fn run_daq(
 
 pub fn calc_corr(data1:&[Complex<i16>], data2:&[Complex<i16>], nch:usize)->Vec<Complex<f64> >{
     assert!(data1.len()==data2.len());
-    let mut tnt=0;
     let zeros= {
         let mut temp_buf=vec![0_f64; nch*2];
         let ptr=temp_buf.as_mut_ptr();
