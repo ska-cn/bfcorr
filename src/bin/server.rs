@@ -15,8 +15,8 @@ fn main(){
     
     let args:Vec<_>=env::args().collect();
     let interface=args[1].to_string();
-    let ch1=0;
-    let ch2=2048;
+    let ch1=1000;
+    let ch2=1032;
     let nch=ch2-ch1;
     let recv=run_daq(&interface, 60000, nch, 80000, 16);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
