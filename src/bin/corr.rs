@@ -1,7 +1,10 @@
 extern crate bfcorr;
 extern crate crossbeam_channel;
 extern crate pcap;
+extern crate chrono;
+extern crate astroalgo;
 
+use astroalgo::sidereal::IntoApparentGreenSidereal;
 use bfcorr::calc_corr_par;
 use bfcorr::run_daq;
 use std::env;
@@ -53,6 +56,8 @@ fn main() {
         } else {
             panic!();
         };
+
+        let sid=chrono::offset::Utc::now().naive_utc().apparent_green_sidereal_angle().0;
         println!("{} {}", chunk_id1, chunk_id2);
 
         let mut file_xx = File::create("spec_xx.txt").unwrap();
@@ -78,6 +83,38 @@ fn main() {
                 yy[i].re
             );
         }
+
+        let mut bin_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("xx.bin")
+            .expect("cannot open file");
+        let data=unsafe{std::slice::from_raw_parts(xx.as_ptr() as *const u8, xx.len()*8*2)};
+        bin_file.write(data);
+
+        let mut bin_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("yy.bin")
+            .expect("cannot open file");
+        let data=unsafe{std::slice::from_raw_parts(yy.as_ptr() as *const u8, xx.len()*8*2)};
+        bin_file.write(data);
+
+        let mut bin_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("xy.bin")
+            .expect("cannot open file");
+        let data=unsafe{std::slice::from_raw_parts(xy.as_ptr() as *const u8, xx.len()*8*2)};
+        bin_file.write(data);
+        let mut sidereal_file=std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("sidereal.txt")
+            .expect("cannot open file");
+
+        writeln!(sidereal_file, "{}",sid);
+
     }
     //assert!(false);
 }
