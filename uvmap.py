@@ -49,13 +49,14 @@ vis_yy=open(sys.argv[4],'rb')
 sid_file=open(sys.argv[1],'r')
 
 for sid in sid_file:
+    print sid
     xx=struct.unpack('<{0}d'.format(nchannels*2),vis_xx.read(nchannels*2*sizeof_float))
     yy=struct.unpack('<{0}d'.format(nchannels*2),vis_yy.read(nchannels*2*sizeof_float))
     xy=struct.unpack('<{0}d'.format(nchannels*2),vis_xy.read(nchannels*2*sizeof_float))
     xy_c=[xy[i*2]+xy[i*2+1]*1j for i in range(0,nchannels)]
     xx_c=[xx[i*2] for i in range(0,nchannels)]
     yy_c=[yy[i*2] for i in range(0,nchannels)]
-    cross_corr=[xy_c[i]/math.sqrt(xx_c[i]*yy_c[i])*cmath.exp(1j*delay/(c/((i+ch_beg)*frq_per_ch))*2*math.pi) for i in range(0,nchannels)]
+    cross_corr=[xy_c[i]/math.sqrt(xx_c[i]*yy_c[i])*cmath.exp(1j*delay/(c/((i+ch_beg)*freq_per_ch))*2*math.pi) for i in range(0,nchannels)]
     sid_angle=float(sid)
     for i in range(0,nchannels):
         ch=ch_beg+i
@@ -70,7 +71,7 @@ for sid in sid_file:
             mxi[vi,ui]+=cross_corr[i].imag
             wgt[vi,ui]+=1
             
-    
+print "uvmap filled"    
         
 for i in range(0,img_size):
     for j in range(0,img_size):
