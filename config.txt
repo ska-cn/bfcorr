@@ -1,0 +1,5 @@
+ch_beg=400
+ch_end=1640
+ra=0
+dec=90
+
