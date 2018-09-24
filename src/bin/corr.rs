@@ -27,6 +27,7 @@ fn main() {
         println!("Q len={} {}", recv1.len(), recv2.len());
         let (chunk_id1, data1) = recv1.recv().unwrap();
         let (chunk_id2, data2) = recv2.recv().unwrap();
+        println!("{} {}", chunk_id1, chunk_id2);
         let (xx, xy, yy) = if chunk_id1 == chunk_id2 {
             (
                 calc_corr_par(&data1, &data1, ch2 - ch1),
