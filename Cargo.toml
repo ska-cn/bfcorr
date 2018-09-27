@@ -11,7 +11,7 @@ num-complex = "0.2.0"
 num-traits = "0.2.5"
 rayon="1.0.2"
 chrono="0.4.6"
-
+endian_trait="0.6.0"
 
 [dependencies.astroalgo]
 path="../astroalgo"

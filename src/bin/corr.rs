@@ -20,8 +20,8 @@ fn main() {
     let ch1 = 400;
     let ch2 = 1640;
     let nch = ch2 - ch1;
-    let recv1 = run_daq(&interface1, 60000, nch, 80000, 16);
-    let recv2 = run_daq(&interface2, 60000, nch, 80000, 16);
+    let recv1 = run_daq(&interface1, 60000, nch, 320000, 16);
+    let recv2 = run_daq(&interface2, 60000, nch, 320000, 16);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
 
     let mut current_chunk_id = 0;

@@ -24,8 +24,6 @@ fn main() {
         //println!("a");
 
         let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let spec = calc_corr_par(&data, &data, ch2 - ch1);
         let mean = calc_mean_par(&data, ch2-ch1);
         //println!("b");
         //println!("{} {} {} ",chunk_id,  recv.len(),spec.len());

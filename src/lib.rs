@@ -3,9 +3,11 @@ extern crate num_complex;
 extern crate num_traits;
 extern crate pcap;
 extern crate rayon;
+extern crate endian_trait;
 
 use rayon::prelude::*;
 
+use endian_trait::Endian;
 use crossbeam_channel as channel;
 use num_complex::Complex;
 use num_traits::identities::Zero;
@@ -161,6 +163,56 @@ pub fn calc_corr_par(
             a.iter().zip(b.iter()).map(|(x, y)| x + y).collect()
         })
 }
+
+pub fn calc_mean_par(
+    data1: &[Complex<i16>],
+    nch: usize,
+) -> Vec<Complex<i64>> {
+    let zeros = || {
+        let mut temp_buf = vec![0_i64; nch * 2];
+        let ptr = temp_buf.as_mut_ptr();
+        std::mem::forget(temp_buf);
+        unsafe { Vec::from_raw_parts(ptr as *mut Complex<i64>, nch, nch) }
+    };
+    let nchunk=data1.len()/nch;
+
+    data1
+        .par_iter()
+        .map(|&a| {
+            let a1 = Complex::<i64>::new(a.re as i64, a.im as i64);
+            a1
+        }).chunks(nch)
+        .reduce(zeros, |a, b| {
+            a.iter().zip(b.iter()).map(|(x, y)| x+*y).collect()
+        })//.iter().map(|&x|{x/nchunk as f64}).collect()
+}
+
+pub fn calc_mean_par_be(
+    data1: &[Complex<i16>],
+    nch: usize,
+) -> Vec<Complex<i64>> {
+    let zeros = || {
+        let mut temp_buf = vec![0_i64; nch * 2];
+        let ptr = temp_buf.as_mut_ptr();
+        std::mem::forget(temp_buf);
+        unsafe { Vec::from_raw_parts(ptr as *mut Complex<i64>, nch, nch) }
+    };
+    let nchunk=data1.len()/nch;
+
+    data1
+        .par_iter()
+        .map(|&a| {
+            //println!("{} {}", a.re.to_le(), a.re);
+            let a1 = Complex::<i64>::new(i16::from_be(a.re) as i64, i16::from_be(a.im) as i64);
+            //let a1 = Complex::<i64>::new(a.re as i64, a.im as i64);
+            a1
+        }).chunks(nch)
+        .reduce(zeros, |a, b| {
+            a.iter().zip(b.iter()).map(|(x, y)| *y).collect()
+        })//.iter().map(|&x|{x/nchunk as f64}).collect()
+}
+
+
 
 pub fn calc_corr1(
     data1: &Vec<Complex<i16>>,

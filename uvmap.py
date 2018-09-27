@@ -21,14 +21,14 @@ max_f=200E6;
 
 freq_per_ch=250e6/2048
 
-delay=500*1.47
+delay=0*1.47
 #delay=0
 max_bl=2740;
-bl=250+750
+bl=2740
 #bl=2740
 c=2.99792458E8
 max_uv=max_bl/(c/max_f)
-img_size=4096
+img_size=2048
 
 sizeof_float=8
 
@@ -78,12 +78,14 @@ for i in range(0,img_size):
         if wgt[i,j]>0:
             mxr[i,j]/=wgt[i,j]
             mxi[i,j]/=wgt[i,j]
-        if abs(mxr[i,j])>.003:
+        if abs(mxr[i,j])>.05:
             mxr[i,j]=0
             mxi[i,j]=0
 
 pyfits.PrimaryHDU(mxr).writeto('r.fits',clobber=True)
 pyfits.PrimaryHDU(mxi).writeto('i.fits',clobber=True)
+mxr-=mxr.mean()
+mxi-=mxi.mean()
 
 
 mx=mxr+1j*mxi

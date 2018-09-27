@@ -8,4 +8,6 @@ if data.shape[1]==2:
 elif data.shape[1]==3:
     plt.plot(data[:,0],data[:,1],'k')
     plt.plot(data[:,0],data[:,2],'r')
+plt.savefig('spec.png')
 plt.show()
+
