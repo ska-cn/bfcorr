@@ -6,6 +6,7 @@ extern crate astroalgo;
 
 use astroalgo::sidereal::IntoApparentGreenSidereal;
 use bfcorr::calc_corr_par;
+use bfcorr::calc_corr_coeff_par;
 use bfcorr::run_daq;
 use std::env;
 use std::fs::File;
@@ -31,11 +32,13 @@ fn main() {
         let (chunk_id1, data1) = recv1.recv().unwrap();
         let (chunk_id2, data2) = recv2.recv().unwrap();
         println!("{} {}", chunk_id1, chunk_id2);
-        let (xx, xy, yy) = if chunk_id1 == chunk_id2 {
+        let (xx, xy, yy, cc) = if chunk_id1 == chunk_id2 {
             (
                 calc_corr_par(&data1, &data1, ch2 - ch1),
                 calc_corr_par(&data1, &data2, ch2 - ch1),
                 calc_corr_par(&data2, &data2, ch2 - ch1),
+                calc_corr_coeff_par(&data1, &data2, ch2 - ch1)
+
             )
         } else if chunk_id1 < chunk_id2 {
             let (chunk_id1, data1) = recv1.recv().unwrap();
@@ -44,6 +47,7 @@ fn main() {
                 calc_corr_par(&data1, &data1, ch2 - ch1),
                 calc_corr_par(&data1, &data2, ch2 - ch1),
                 calc_corr_par(&data2, &data2, ch2 - ch1),
+                calc_corr_coeff_par(&data1, &data2, ch2 - ch1)
             )
         } else if chunk_id1 > chunk_id2 {
             let (chunk_id2, data2) = recv2.recv().unwrap();
@@ -52,6 +56,7 @@ fn main() {
                 calc_corr_par(&data1, &data1, ch2 - ch1),
                 calc_corr_par(&data1, &data2, ch2 - ch1),
                 calc_corr_par(&data2, &data2, ch2 - ch1),
+                calc_corr_coeff_par(&data1, &data2, ch2 - ch1)
             )
         } else {
             panic!();
@@ -107,6 +112,15 @@ fn main() {
             .expect("cannot open file");
         let data=unsafe{std::slice::from_raw_parts(xy.as_ptr() as *const u8, xx.len()*8*2)};
         bin_file.write(data);
+
+        let mut bin_file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("cc.bin")
+            .expect("cannot open file");
+        let data=unsafe{std::slice::from_raw_parts(cc.as_ptr() as *const u8, xx.len()*8*2)};
+        bin_file.write(data);
+
         let mut sidereal_file=std::fs::OpenOptions::new()
             .create(true)
             .append(true)
