@@ -30,30 +30,24 @@ img_size=2048
 
 sizeof_float=8
 
-if len (sys.argv)<5:
-    print("Usage:{0} <sid> <XY> <XX> <YY> [delay]".format(sys.argv[0]))
+if len (sys.argv)<3:
+    print("Usage:{0} <sid> <XY> [delay]".format(sys.argv[0]))
     sys.exit(0)
 
-if len(sys.argv)>=6:
-    delay=float(sys.argv[5])
+if len(sys.argv)>=4:
+    delay=float(sys.argv[3])
 
 mxr=np.zeros([img_size,img_size])
 mxi=np.zeros([img_size,img_size])
 wgt=np.zeros([img_size,img_size])
 vis_xy=open(sys.argv[2],'rb')
-vis_xx=open(sys.argv[3],'rb')
-vis_yy=open(sys.argv[4],'rb')
 #sid_file=open(sys.argv[1],'r')
 
 for sid in open(sys.argv[1]):
     print sid.strip()
     xy = np.array(struct.unpack('<{0}d'.format(nchannels * 2 ), vis_xy.read(nchannels*2*sizeof_float)))
-    xx = np.array(struct.unpack('<{0}d'.format(nchannels * 2 ), vis_xx.read(nchannels*2*sizeof_float)))
-    yy = np.array(struct.unpack('<{0}d'.format(nchannels * 2 ), vis_yy.read(nchannels*2*sizeof_float)))
     xy=xy[::2]+1j*xy[1::2]
-    xx=xx[::2]
-    yy=yy[::2]
-    cross_corr=xy/np.sqrt(xx*yy)
+    cross_corr=xy
     sid_angle=float(sid)
     for i in range(0,nchannels):
         ch=ch_beg+i
@@ -76,7 +70,7 @@ for i in range(0,img_size):
         if wgt[i,j]>0:
             mxr[i,j]/=wgt[i,j]
             mxi[i,j]/=wgt[i,j]
-        if np.sqrt(mxr[i,j]**2+mxi[i,j]**2)>.007:
+        if np.sqrt(mxr[i,j]**2+mxi[i,j]**2)>1500.0:
             mxr[i,j]=0
             mxi[i,j]=0
 

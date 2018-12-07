@@ -1,6 +1,7 @@
 [dependencies]
 chrono = '0.4.6'
 crossbeam-channel = '0.3.2'
+endian_trait = '0.6.0'
 num-complex = '0.2.1'
 num-traits = '0.2.6'
 pcap = '0.7.0'

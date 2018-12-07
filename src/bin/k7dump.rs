@@ -3,7 +3,7 @@ extern crate crossbeam_channel;
 extern crate pcap;
 
 use bfcorr::calc_corr_par;
-use bfcorr::calc_mean_par;
+use bfcorr::calc_mean_par_be;
 use bfcorr::run_daq;
 use std::env;
 use std::fs::File;
@@ -14,8 +14,8 @@ use pcap::Capture;
 fn main() {
     let args: Vec<_> = env::args().collect();
     let interface = args[1].to_string();
-    let ch1 = 400;
-    let ch2 = 1640;
+    let ch1 = 0;
+    let ch2 = 2048;
     let nch = ch2 - ch1;
     let recv = run_daq(&interface, 60000, nch, 320000, 4);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
@@ -24,9 +24,7 @@ fn main() {
         //println!("a");
 
         let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let mean = calc_mean_par(&data, ch2-ch1);
+        let mean = calc_mean_par_be(&data, ch2-ch1);
         //println!("b");
         //println!("{} {} {} ",chunk_id,  recv.len(),spec.len());
 
