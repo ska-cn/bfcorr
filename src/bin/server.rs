@@ -19,7 +19,7 @@ fn main() {
     let recv = run_daq(&interface, 60000, nch, 80000, 4);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
 
-    while let Some((chunk_id, data)) = recv.recv() {
+    while let Ok((chunk_id, data)) = recv.recv() {
         //println!("a");
 
         let spec = calc_corr_par(&data, &data, ch2 - ch1);
