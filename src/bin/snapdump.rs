@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 extern crate bfcorr;
 extern crate crossbeam_channel;
 extern crate pcap;
@@ -9,22 +10,20 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
-use crossbeam_channel as channel;
-use pcap::Capture;
 fn main() {
     let args: Vec<_> = env::args().collect();
     let interface = args[1].to_string();
     let ch1 = 400;
     let ch2 = 1640;
     let nch = ch2 - ch1;
-    let recv = run_daq(&interface, 60000, nch, 320000, 4);
+    let recv = run_daq(&interface, 60000, nch, 320_000, 4);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
 
     while let Ok((chunk_id, data)) = recv.recv() {
         //println!("a");
 
         let spec = calc_corr_par(&data, &data, ch2 - ch1);
-        let mean = calc_mean_par(&data, ch2-ch1);
+        let mean = calc_mean_par(&data, ch2 - ch1);
         //println!("b");
         //println!("{} {} {} ",chunk_id,  recv.len(),spec.len());
 
@@ -36,7 +35,7 @@ fn main() {
                 "{} {}",
                 (i + ch1) as f64 / 2048.0 * 250.0,
                 spec[i].re
-            );
+            ).unwrap();
         }
         let mut file = File::create("mean.txt").unwrap();
         for i in 0..spec.len() {
@@ -44,8 +43,9 @@ fn main() {
                 &mut file,
                 "{} {} {}",
                 (i + ch1) as f64 / 2048.0 * 250.0,
-                mean[i].re, mean[i].im
-            );
+                mean[i].re,
+                mean[i].im
+            ).unwrap();
         }
         //break;
     }
