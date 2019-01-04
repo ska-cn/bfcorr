@@ -27,8 +27,8 @@ pub fn run_daq(
     let dev=interfaces().into_iter().filter(|x|{x.name==dev_name}).nth(0).expect("Cannot find dev");
 
 
-    let cfg=Config{write_buffer_size:1024, read_buffer_size:((1_usize << 31) - 1), read_timeout:None, write_timeout:None, channel_type:ChannelType::Layer2, bpf_fd_attempts:1000,
-        };
+    //let cfg=Config{write_buffer_size:1024, read_buffer_size:((1_usize << 31) - 1), read_timeout:None, write_timeout:None, channel_type:ChannelType::Layer2, bpf_fd_attempts:1000,};
+    let cfg=Config{write_buffer_size:1024, read_buffer_size:65536, read_timeout:None, write_timeout:None, channel_type:ChannelType::Layer2, bpf_fd_attempts:1000,};
 
     let mut cap=
     if let Channel::Ethernet(_, cap)=channel(&dev, cfg).expect("canot open channel"){
@@ -55,6 +55,7 @@ pub fn run_daq(
         let mut old_id = loop {
             let packet = cap.next().unwrap();
             if packet.len()!=packet_len{
+                println!("{}", packet.len());
                 continue
             }
             let data = &packet[42..];
