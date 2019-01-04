@@ -1,7 +1,7 @@
 #![allow(clippy::needless_range_loop)]
 extern crate bfcorr;
 extern crate crossbeam_channel;
-extern crate pcap;
+
 
 use bfcorr::calc_corr_par;
 use bfcorr::calc_mean_par_be;

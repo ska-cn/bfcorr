@@ -1,12 +1,17 @@
 [dependencies]
 chrono = '0.4.6'
-crossbeam-channel = '0.3.4'
+crossbeam-channel = '0.3.6'
 endian_trait = '0.6.0'
 num-complex = '0.2.1'
 num-traits = '0.2.6'
-pcap = '0.7.0'
+#pcap = '0.7.0'
 rayon = '1.0.3'
 udt = '0.2.0'
+
+[dependencies.pnet]
+version= '0.21.0'
+#features=["netmap"]
+
 
 [dependencies.astroalgo]
 path = '../astroalgo'

@@ -3,7 +3,6 @@ extern crate astroalgo;
 extern crate bfcorr;
 extern crate chrono;
 extern crate crossbeam_channel;
-extern crate pcap;
 
 use astroalgo::sidereal::IntoApparentGreenSidereal;
 use bfcorr::calc_corr_coeff_par;

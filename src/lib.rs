@@ -3,14 +3,16 @@ extern crate crossbeam_channel;
 extern crate endian_trait;
 extern crate num_complex;
 extern crate num_traits;
-extern crate pcap;
+extern crate pnet;
 extern crate rayon;
 
 use rayon::prelude::*;
 
 use crossbeam_channel as channel;
 use num_complex::Complex;
-use pcap::Capture;
+use pnet::datalink::interfaces;
+use pnet::datalink::{channel, Config, ChannelType, Channel};
+//use pcap::Capture;
 pub const ID_MASK: u64 = ((1_u64 << 42) - 1);
 pub const BYTES_PER_NUMBER: usize = 2;
 
@@ -21,22 +23,25 @@ pub fn run_daq(
     nchunks: usize,
     queue_depth: usize,
 ) -> channel::Receiver<(usize, Vec<Complex<i16>>)> {
-    let dev = pcap::Device {
-        name: dev_name.to_string(),
-        desc: None,
+
+    let dev=interfaces().into_iter().filter(|x|{x.name==dev_name}).nth(0).expect("Cannot find dev");
+
+
+    let cfg=Config{write_buffer_size:1024, read_buffer_size:((1_usize << 31) - 1), read_timeout:None, write_timeout:None, channel_type:ChannelType::Layer2, bpf_fd_attempts:1000,
+        };
+
+    let mut cap=
+    if let Channel::Ethernet(_, cap)=channel(&dev, cfg).expect("canot open channel"){
+        cap
+    }else{
+        panic!();
     };
 
-    let mut cap = Capture::from_device(dev)
-        .unwrap()
-        .timeout(10_000_000)
-        .buffer_size(((1_u32 << 31) - 1) as i32)
-        .open()
-        .unwrap();
     let packet_len = nchannels * BYTES_PER_NUMBER * 2 + 50;
-    cap.filter(&format!(
+    /*cap.filter(&format!(
         "less {} and greater {} and dst port {}",
         packet_len, packet_len, port
-    )).unwrap();
+    )).unwrap();*/
     //cap.next().unwrap();
     let buf_size = nchannels * nchunks;
 
@@ -47,9 +52,12 @@ pub fn run_daq(
 
     let recv1 = recv.clone();
     let _th = std::thread::spawn(move || {
-        let mut old_id = {
+        let mut old_id = loop {
             let packet = cap.next().unwrap();
-            let data = &packet.data[42..];
+            if packet.len()!=packet_len{
+                continue
+            }
+            let data = &packet[42..];
             //let payload = &data[8..];
             //let header: &[u64] = unsafe { std::mem::transmute(&data[0..(0 + 8)]) };
             let mut header = 0_u64;
@@ -61,7 +69,7 @@ pub fn run_daq(
             assert!(payload.len() == nchannels * BYTES_PER_NUMBER * 2);
             header[0] & ID_MASK
             */
-            header & ID_MASK
+            break header & ID_MASK
         };
         let mut cnt = 0;
         let mut buf: Vec<Complex<i16>> = vec![Complex::new(0, 0); buf_size];
@@ -70,7 +78,7 @@ pub fn run_daq(
             //println!("received packet! {:?}", packet);
             //println!("{}", packet.data.len());
             //continue;
-            let data: &[u8] = &packet.data[42..];
+            let data: &[u8] = &packet[42..];
             //println!("{}", data.len());
             let payload = &data[8..];
             //println!("{} {}", data.len(), payload.len());
