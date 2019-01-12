@@ -12,8 +12,8 @@ use std::io::prelude::*;
 fn main() {
     let args: Vec<_> = env::args().collect();
     let interface = args[1].to_string();
-    let ch1 = 400;
-    let ch2 = 1640;
+    let ch1 = 0;
+    let ch2 = 8192;
     let nch = ch2 - ch1;
     let recv = run_daq(&interface, 60000, nch, 320_000, 4);
     //let recv=run_daq("ens5f1", 60000, nch, 80000, 16);
